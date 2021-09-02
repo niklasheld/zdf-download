@@ -5,12 +5,11 @@ from typing import List
 import feedparser
 import requests
 from dateutil import parser
+import schedule
+import time
 
 from configuration import Configuration, ShowConfiguration, DownloadConfiguration, load_configuration_from_yaml
 from history import History
-
-
-
 
 
 def should_download(entry, show_config: ShowConfiguration) -> bool:
@@ -98,4 +97,9 @@ def check_all_shows(shows: List[ShowConfiguration]) -> None:
 
 history = History("history.yaml")
 config: Configuration = load_configuration_from_yaml("configuration.yaml")
-check_all_shows(config.shows)
+
+schedule.every(config.interval).minutes.do(check_all_shows, shows=config.shows)
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)
