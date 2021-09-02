@@ -1,39 +1,38 @@
-
-from configuration import Configuration
-from history import History
-
+"""Main script for the ZDF Downloader."""
 import os
 import re
+from typing import List
 import feedparser
 import requests
 from dateutil import parser
-from typing import List
 
-configuration = Configuration()
-history = History()
+from configuration import Configuration, ShowConfiguration, DownloadConfiguration, load_configuration_from_yaml
+from history import History
 
 
-def should_download(entry, show_config) -> bool:
-    """ checks if an episode should be downloaded """
 
+
+
+def should_download(entry, show_config: ShowConfiguration) -> bool:
+    """Check if an episode should be downloaded."""
     # check if episode was already downloaded
     if history.is_in_history(entry.get("link")):
         print(f'{entry.get("title")} is in history')
         return False
 
-    show_filter = show_config.get("filter")
+    show_filter = show_config.filter
     if show_filter:
 
         # check episode-field against regex filter
-        regex: str = show_filter.get("regex")
-        regex_field: str = show_filter.get("regexField")
+        regex: str = show_filter.regex
+        regex_field: str = show_filter.regex_field
         if (regex and regex_field and not re.search(regex, entry.get(regex_field))):
             print(f'{entry.get("title")} does not fit regex')
             return False
-        
+
         # check if episode before minimum date
-        min_date = show_filter.get("minDate")
-        if (min_date):
+        min_date = show_filter.min_date
+        if min_date:
             min_date = parser.parse(min_date)
             entry_date = parser.parse(entry.get("published"))
             if entry_date < min_date:
@@ -48,16 +47,15 @@ def should_download(entry, show_config) -> bool:
 
 
 def is_episode_released(url: str) -> bool:
-    """ check if an episode has actually been released (rss feed has future episode) """
-    r = requests.get(url)
-    return "verfügbar ab" not in r.text
+    """Check if an episode has actually been released (rss feed has future episode)."""
+    result = requests.get(url)
+    return "verfügbar ab" not in result.text
 
 
-def find_filename(show_folder, show_episode_name) -> str:
-    """ generate a new filename by adding one to the current newest filename """
+def find_filename(download: DownloadConfiguration) -> str:
+    """Generate a new filename by adding one to the current newest filename."""
+    episode_files: List[str] = list(filter(lambda filename: download.filename in filename, os.listdir(download.folder)))
 
-    episode_files: List[str] = list(filter(lambda filename: show_episode_name in filename, os.listdir(show_folder)))
-    
     if not len(episode_files) == 0:
         newest_filename = os.path.splitext(episode_files[-1])[0]
         regex = re.match(r"^(.* S\d+E)(\d+)", newest_filename)
@@ -68,32 +66,36 @@ def find_filename(show_folder, show_episode_name) -> str:
         new_filename = filename_base + "{:0>2d}".format(new_episode_number)
 
     else:
-        new_filename = show_episode_name + " S01E01"
+        new_filename = download.filename + " S01E01"
 
     return new_filename
 
 
-def download_episode(url: str, show_folder: str, show_episode_name: str):
-    """ download episode using youtube-dl """
-    filename = find_filename(show_folder, show_episode_name)
-    command = "youtube-dl " + url + " -o \"" + show_folder + "/" + filename + ".%(ext)s\""
+def download_episode(url: str, download: DownloadConfiguration):
+    """Download episode using youtube-dl."""
+    filename = find_filename(download)
+    command = "youtube-dl " + url + " -o \"" + download.folder + "/" + filename + ".%(ext)s\""
     os.system(command)
     history.add_to_history(url)
 
 
-def check_for_episodes() -> None:
-    """ Check all shows from configuration for new episodes """
+def check_show(show: ShowConfiguration) -> None:
+    """Check all episodes of a show for new downloads."""
+    feed = feedparser.parse(show.feed_url)
+    entries = feed.entries
+    entries.reverse()
+    for entry in entries:
+        if should_download(entry, show):
+            print(f'Downloading episode {entry.get("title")}')
+            download_episode(entry.get("link"), show.download)
 
-    config: dict = configuration.load()
 
-    for show in config["shows"]:
-        feed = feedparser.parse(show["feed-url"])
-        entries = feed.entries
-        entries.reverse()
-        for entry in entries:
-            if (should_download(entry, show)):
-                show_download = show.get("download")
-                print(f'Downloading episode {entry.get("title")}')
-                download_episode(entry.get("link"), show_download.get("folder"), show_download.get("filename"))
+def check_all_shows(shows: List[ShowConfiguration]) -> None:
+    """Check all shows in configuration for new downloads."""
+    for show in shows:
+        check_show(show)
 
-check_for_episodes()
+
+history = History("history.yaml")
+config: Configuration = load_configuration_from_yaml("configuration.yaml")
+check_all_shows(config.shows)
