@@ -16,7 +16,7 @@ class History():
             return []
         else:
             with open(self.history_file, "r") as file:
-                history: List[str] = yaml.load(file.read())
+                history: List[str] = yaml.load(file.read(), Loader=yaml.FullLoader)
             return history
 
     def is_in_history(self, url: str) -> bool:
