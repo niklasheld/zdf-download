@@ -2,11 +2,12 @@
 import os
 import re
 from typing import List
+import time
 import feedparser
 import requests
 from dateutil import parser
 import schedule
-import time
+
 
 from configuration import Configuration, ShowConfiguration, DownloadConfiguration, load_configuration_from_yaml
 from history import History
@@ -99,6 +100,7 @@ history = History("history.yaml")
 config: Configuration = load_configuration_from_yaml("configuration.yaml")
 
 schedule.every(config.interval).minutes.do(check_all_shows, shows=config.shows)
+schedule.run_all()
 
 while True:
     schedule.run_pending()
