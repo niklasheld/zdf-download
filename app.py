@@ -1,23 +1,25 @@
 """Main script for the ZDF Downloader."""
 import os
+import sys
 import re
 from typing import List
 import time
+import logging
 import feedparser
 import requests
 from dateutil import parser
 import schedule
 
-
 from configuration import Configuration, ShowConfiguration, DownloadConfiguration, load_configuration_from_yaml
 from history import History
 
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
 def should_download(entry, show_config: ShowConfiguration) -> bool:
     """Check if an episode should be downloaded."""
     # check if episode was already downloaded
     if history.is_in_history(entry.get("link")):
-        print(f'{entry.get("title")} is in history')
+        logging.debug('%s is in history', entry.get("title"))
         return False
 
     show_filter = show_config.filter
@@ -27,7 +29,7 @@ def should_download(entry, show_config: ShowConfiguration) -> bool:
         regex: str = show_filter.regex
         regex_field: str = show_filter.regex_field
         if (regex and regex_field and not re.search(regex, entry.get(regex_field))):
-            print(f'{entry.get("title")} does not fit regex')
+            logging.debug('%s does not fit regex', entry.get("title"))
             return False
 
         # check if episode before minimum date
@@ -36,11 +38,11 @@ def should_download(entry, show_config: ShowConfiguration) -> bool:
             min_date = parser.parse(min_date)
             entry_date = parser.parse(entry.get("published"))
             if entry_date < min_date:
-                print(f'{entry.get("title")} is before mindate')
+                logging.debug(f'%s is before mindate', entry.get("title"))
                 return False
 
         if not is_episode_released(entry.get("link")):
-            print(f'{entry.get("title")} is not yet released')
+            logging.debug('%s is not yet released', entry.get("title"))
             return False
 
     return True
@@ -86,12 +88,13 @@ def check_show(show: ShowConfiguration) -> None:
     entries.reverse()
     for entry in entries:
         if should_download(entry, show):
-            print(f'Downloading episode {entry.get("title")}')
+            logging.info('Downloading episode %s: %s', entry.get("title"), entry.get("link"))
             download_episode(entry.get("link"), show.download)
 
 
 def check_all_shows(shows: List[ShowConfiguration]) -> None:
     """Check all shows in configuration for new downloads."""
+    logging.info("checking all shows")
     for show in shows:
         check_show(show)
 
