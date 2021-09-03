@@ -3,3 +3,5 @@ __pycache__
 configuration.yaml
 history.yaml
 media/
+*.mp4
+*.log
