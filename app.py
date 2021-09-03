@@ -100,7 +100,7 @@ def check_all_shows(shows: List[ShowConfiguration]) -> None:
 
 
 history = History("history.yaml")
-config: Configuration = load_configuration_from_yaml("configuration.yaml")
+config: Configuration = load_configuration_from_yaml("configuration/configuration.yaml")
 
 schedule.every(config.interval).minutes.do(check_all_shows, shows=config.shows)
 schedule.run_all()
