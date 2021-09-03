@@ -44,4 +44,4 @@ You can also use the pre-build container and deploy directly from the GitHub con
 
 ### Without docker
 
-Install the packages from `requirements.txt`, preferably in a python virtual environment. Make sure that `youtube-dl` and `ffmpeg` are installed and available. Start the application using `python app.py`.
+Install the packages from `requirements.txt`, preferably in a python virtual environment. Make sure that `youtube-dl` and `ffmpeg` are installed and available. Start the application using `python zdf-download.py`.
