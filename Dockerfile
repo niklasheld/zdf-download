@@ -8,4 +8,4 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-CMD python zdf-download.py
+CMD python app.py
