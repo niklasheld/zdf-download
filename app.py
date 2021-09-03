@@ -5,6 +5,7 @@ import re
 from typing import List
 import time
 import logging
+import subprocess
 import feedparser
 import requests
 from dateutil import parser
@@ -51,7 +52,7 @@ def should_download(entry, show_config: ShowConfiguration) -> bool:
 def is_episode_released(url: str) -> bool:
     """Check if an episode has actually been released (rss feed has future episode)."""
     result = requests.get(url)
-    return "verfügbar ab" not in result.text
+    return "verfügbar bis" in result.text
 
 
 def find_filename(download: DownloadConfiguration) -> str:
