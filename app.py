@@ -77,8 +77,11 @@ def download_episode(url: str, download: DownloadConfiguration):
     """Download episode using youtube-dl."""
     filename = find_filename(download)
     command = "youtube-dl " + url + " -o \"" + download.folder + "/" + filename + ".%(ext)s\""
-    os.system(command)
-    history.add_to_history(url)
+    try:
+        subprocess.run(command, check=True)
+        history.add_to_history(url)
+    except subprocess.CalledProcessError:
+        logging.error('Error downloading %s', url)
 
 
 def check_show(show: ShowConfiguration) -> None:
