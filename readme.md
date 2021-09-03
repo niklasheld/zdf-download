@@ -1,7 +1,7 @@
 
+<h1 style="text-alignment: center">ZDF-Download</h1>
 
-
-# ZDF-Download
+[![Build Container](https://github.com/niklasheld/zdf-download/actions/workflows/build-container.yaml/badge.svg)](https://github.com/niklasheld/zdf-download/actions/workflows/build-container.yaml)
 
 Script to automatically download new episodes of TV shows from the ZDF Mediathek. The script is meant to quickly download *new* episodes, not all available episodes.
 
@@ -20,16 +20,28 @@ As an option, you can also define regex-filters on fields from the rss-feed to f
 
 ## How to start
 
-Before starting the script, add a custom `configuration.yaml`-file to your directory.
+Before starting the script, add a custom `configuration.yaml`-file to your directory. You can find an example configuration in the configuration-folder
 
 ### Docker
 
 The recommended way to use this program is to start a lightweight Docker-container and mount your media-folders and configuration.
 
+#### Build yourself
+
+You can start a docker-build using the following command:
+
 ``docker build -t zdf-download .``
 
-``docker run -t zdf-download``
+Afterwards, you can deploy the built container using this command:
 
-### Standalone
+``docker run -d --name=zdf-download -v <host-media-folder>:<docker-media-folder> -v <host-configuration-folder>:/app/configuration zdf-download:latest``
+
+#### Use the latest pre-built image
+
+You can also use the pre-build container and deploy directly from the GitHub container-registry:
+
+``docker run -d --name=zdf-download -v <host-media-folder>:<docker-media-folder> -v <host-configuration-folder>:/app/configuration ghcr.io/niklasheld/zdf-download:latest``
+
+### Without docker
 
 Install the packages from `requirements.txt`, preferably in a python virtual environment. Make sure that `youtube-dl` and `ffmpeg` are installed and available. Start the application using `python app.py`.
