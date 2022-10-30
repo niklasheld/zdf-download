@@ -9,7 +9,7 @@ from history import History
 def main() -> None:
 
     config: Configuration = load_configuration_from_yaml("configuration/configuration.yaml")
-    history: History = History("history.yaml")
+    history: History = History("configuration/history.yaml")
     zdf_downloader: ZDFDownload = ZDFDownload(history=history, config=config)
 
     log = logging.getLogger("zdf-download")
