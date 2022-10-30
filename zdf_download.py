@@ -68,7 +68,7 @@ class ZDFDownload():
         """Generate a new filename by adding one to the current newest filename."""
         episode_files: List[str] = list(filter(lambda filename: download.filename in filename, sorted(os.listdir(download.folder))))
 
-        if not len(episode_files) == 0:
+        if len(episode_files) > 0:
             newest_filename = os.path.splitext(episode_files[-1])[0]
             regex = re.match(r"^(.* S\d+E)(\d+)", newest_filename)
             filename_base: str = regex.group(1)
