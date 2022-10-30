@@ -2,12 +2,26 @@
 from typing import List
 import os
 import yaml
+import logging
+from sys import stdout
 
+log = logging.getLogger("zdf-download")
 
 class FilterConfiguration():
     """Configures filters within a show."""
 
+    def __setup_logging(self) -> None:
+        """Configure logging for the application"""
+        log = logging.getLogger("zdf-download")
+
+        log.setLevel(logging.DEBUG)
+        log_formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
+        console_handler = logging.StreamHandler(stdout)
+        console_handler.setFormatter(log_formatter)
+        log.addHandler(console_handler)
+
     def __init__(self, regex: str, regex_field: str, min_date: str) -> None:
+        self.__setup_logging()
         self.regex: str = regex
         self.regex_field: str = regex_field
         self.min_date: str = min_date
