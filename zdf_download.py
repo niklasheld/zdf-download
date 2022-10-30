@@ -86,7 +86,7 @@ class ZDFDownload():
     def download_episode(self, url: str, download: DownloadConfiguration):
         """Download episode using youtube-dl."""
         filename = self.find_filename(download)
-        download_path = download.folder + "/" + filename + ".%(ext)s\""
+        download_path = download.folder + "/" + filename + ".%(ext)s"
         try:
             subprocess.run(["youtube-dl", url, "-o", download_path], check=True)
             self.history.add_to_history(url)
