@@ -14,10 +14,11 @@ from dateutil import parser
 from configuration import Configuration, ShowConfiguration, DownloadConfiguration
 from history import History
 
+log = logging.getLogger("zdf-download")
+
+
 class ZDFDownload():
     """Main-class to handle downloads."""
-
-    logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 
     def __init__(self, history: History, config: Configuration) -> None:
         self.history: History = history
@@ -28,7 +29,7 @@ class ZDFDownload():
         """Check if an episode should be downloaded."""
         # check if episode was already downloaded
         if self.history.is_in_history(entry.get("link")):
-            logging.debug('%s is in history', entry.get("title"))
+            log.debug('episode "%s" is in history', entry.get("title"))
             return False
 
         show_filter = show_config.filter
@@ -38,7 +39,7 @@ class ZDFDownload():
             regex: str = show_filter.regex
             regex_field: str = show_filter.regex_field
             if (regex and regex_field and not re.search(regex, entry.get(regex_field))):
-                logging.debug('%s does not fit regex', entry.get("title"))
+                log.debug('episode "%s" does not fit regex', entry.get("title"))
                 return False
 
             # check if episode before minimum date
@@ -47,11 +48,11 @@ class ZDFDownload():
                 min_date = parser.parse(min_date)
                 entry_date = parser.parse(entry.get("published"))
                 if entry_date < min_date:
-                    logging.debug('%s is before mindate', entry.get("title"))
+                    log.debug('episode "%s" is before mindate', entry.get("title"))
                     return False
 
             if not self.is_episode_released(entry.get("link")):
-                logging.debug('%s is not yet released', entry.get("title"))
+                log.debug('episode "%s" is not yet released', entry.get("title"))
                 return False
 
         return True
@@ -90,7 +91,7 @@ class ZDFDownload():
             subprocess.run(["youtube-dl", url, "-o", download_path], check=True)
             self.history.add_to_history(url)
         except subprocess.CalledProcessError:
-            logging.error('Error downloading %s', url)
+            log.error('error downloading %s', url)
 
 
     def check_show(self, show: ShowConfiguration) -> None:
@@ -100,12 +101,13 @@ class ZDFDownload():
         entries.reverse()
         for entry in entries:
             if self.should_download(entry, show):
-                logging.info('Downloading episode %s: %s', entry.get("title"), entry.get("link"))
+                log.info('downloading episode %s: %s', entry.get("title"), entry.get("link"))
                 self.download_episode(entry.get("link"), show.download)
 
 
     def check_all_shows(self, shows: List[ShowConfiguration]) -> None:
         """Check all shows in configuration for new downloads."""
-        logging.info("checking all shows")
+        log.info("checking all shows")
         for show in shows:
             self.check_show(show)
+        log.info("finished checking all shows")
