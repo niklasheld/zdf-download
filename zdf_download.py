@@ -66,7 +66,7 @@ class ZDFDownload():
 
     def find_filename(self, download: DownloadConfiguration) -> str:
         """Generate a new filename by adding one to the current newest filename."""
-        episode_files: List[str] = list(filter(lambda filename: download.filename in filename, os.listdir(download.folder)))
+        episode_files: List[str] = list(filter(lambda filename: download.filename in filename, sorted(os.listdir(download.folder))))
 
         if not len(episode_files) == 0:
             newest_filename = os.path.splitext(episode_files[-1])[0]
