@@ -5,7 +5,6 @@ description = "Automatically download new episodes of shows from the ZDF Mediath
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "feedparser>=6.0.11",
     "python-dateutil>=2.9.0.post0",
     "pyyaml>=6.0.2",
     "requests>=2.32.3",
