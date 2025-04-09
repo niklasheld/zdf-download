@@ -69,7 +69,7 @@ class ZDFDownload():
         filename = self.find_filename(download)
         download_path = download.folder + "/" + filename + ".%(ext)s"
         try:
-            subprocess.run(["yt-dlp", url, "-o", download_path, "--force-generic"], check=True)
+            subprocess.run(["yt-dlp", url, "-o", download_path, "--force-generic", "--no-progress"], check=True)
             self.history.add_to_history(url)
         except subprocess.CalledProcessError:
             log.error('error downloading %s', url)
