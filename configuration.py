@@ -20,10 +20,8 @@ class FilterConfiguration():
         console_handler.setFormatter(log_formatter)
         log.addHandler(console_handler)
 
-    def __init__(self, regex: str, regex_field: str, min_date: str) -> None:
+    def __init__(self, min_date: str) -> None:
         self.__setup_logging()
-        self.regex: str = regex
-        self.regex_field: str = regex_field
         self.min_date: str = min_date
 
 
@@ -38,8 +36,8 @@ class DownloadConfiguration():
 class ShowConfiguration():
     """Configures a show."""
 
-    def __init__(self, feed_url: str, filter: FilterConfiguration, download: DownloadConfiguration) -> None:
-        self.feed_url: str = feed_url
+    def __init__(self, canonical_id: str, filter: FilterConfiguration, download: DownloadConfiguration) -> None:
+        self.canonical_id: str = canonical_id
         self.filter: FilterConfiguration = filter
         self.download: DownloadConfiguration = download
 
@@ -66,8 +64,6 @@ def load_configuration_from_yaml(filename: str) -> Configuration:
 
         for show in config["shows"]:
             show_filter: FilterConfiguration = FilterConfiguration(
-                regex=show.get("filter").get("regex"),
-                regex_field=show.get("filter").get("regexField"),
                 min_date=show.get("filter").get("minDate"))
             show_download: DownloadConfiguration = DownloadConfiguration(
                 folder=show.get("download").get("folder"),
@@ -75,7 +71,7 @@ def load_configuration_from_yaml(filename: str) -> Configuration:
             show: ShowConfiguration = ShowConfiguration(
                 filter=show_filter,
                 download=show_download,
-                feed_url=show.get("feed-url"))
+                canonical_id=show.get("canonical-id"))
             shows.append(show)
 
         return Configuration(interval=interval, shows=shows)

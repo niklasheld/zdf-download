@@ -12,15 +12,14 @@ Script to automatically download new episodes of TV shows from the ZDF Mediathek
 
 ## How to add new shows
 
-Add RSS-feeds for the show you want to download to the configuration script. You can find a direct URL to the field in the source-code of the mediathek-page. An example for *ZDF Magazin Royale* is [https://www.zdf.de/rss/zdf/comedy/zdf-magazin-royale](https://www.zdf.de/rss/zdf/comedy/zdf-magazin-royale)  
+The downloader needs the "canonical url" of a given show within the ZDF Mediathek. An example for *ZDF Magazin Royale* (https://www.zdf.de/shows/zdf-magazin-royale-102) would be `zdf-magazin-royale-102`
 
-As an option, you can also define regex-filters on fields from the rss-feed to filter out episodes you don't want, i.e. specials or short online-clips. `configuration-example.yaml` has an example for a filter to only download full ZDF Magazin Royale episodes.
 
 ## Application logic
 
 - Script assumes that all files in the target folder are named `<Showname> SxxExx` naming-scheme and no files violate this scheme. It also asumes that you are using a flat filestructure for all seasons.
 - When a new episode is found, a sequential filename is generated for the new download. If you want the file to be downloaded in a new season, you have to rename it manually. The next file will then be sequentially added to this season.
-- After a file is downloaded, it's URL is added to a history-file and it will not be downloaded again.
+- After a file is downloaded, its URL is added to a history-file and it will not be downloaded again.
 
 
 ## How to start
@@ -34,12 +33,11 @@ See `configuration-example.yaml` for an example configuration. The configuration
 | Paramter | Description | Example |
 | --- | --- | --- |
 | interval | Minutes between each scan for new episodes | `60` |
-| shows[].feed-url | URL to the RSS-feed for the show you want to download | `"https://www.zdf.de/rss/zdf/comedy/zdf-magazin-royale"` |
-| shows[].filter.regex | Regular expression to match only specific episodes of a show | `"zdf-magazin-royale-vom-\\d"` |
-| shows[].filter.regexField | Field in the RSS-feed that is filtered for the regular expression | `"link"` |
+| shows[].canonical-id | Canonical ID of the show to download | `"zdf-magazin-royale-102"` |
 | shows[].filter.minDate | Minimum date of episode to download | `"2021-09-01 00:00+00:00"` |
 | shows[].download.folder | Path to the folder where the downloaded files are located for this show | `"/serien/ZDF Magazin Royale"` |
 | shows[].download.filename | Base filename that is used to consecutively name episodes. | `"ZDF Magazin Royale"` |
+
 ### Docker
 
 The recommended way to use this program is to start a lightweight Docker-container and mount your media-folders and configuration.
@@ -62,4 +60,4 @@ You can also use the pre-build container and deploy directly from the GitHub con
 
 ### Without docker
 
-Install the packages from `requirements.txt`, preferably in a python virtual environment. Make sure that `youtube-dl` and `ffmpeg` are installed and available. Start the application using `python app.py`.
+Install the packages from `requirements.txt`, preferably in a python virtual environment. Make sure that `yt-dlp` and `ffmpeg` are installed and available. Start the application using `python app.py`.

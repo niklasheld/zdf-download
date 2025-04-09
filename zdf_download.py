@@ -6,13 +6,12 @@ from typing import List
 
 import logging
 import subprocess
-import feedparser
-import requests
 from dateutil import parser
 
 
 from configuration import Configuration, ShowConfiguration, DownloadConfiguration
 from history import History
+from zdf_client import ZDFClient, ZDFEpisode
 
 log = logging.getLogger("zdf-download")
 
@@ -25,44 +24,26 @@ class ZDFDownload():
         self.config: Configuration = config
 
 
-    def should_download(self, entry, show_config: ShowConfiguration) -> bool:
+    def should_download(self, episode: ZDFEpisode, show_config: ShowConfiguration) -> bool:
         """Check if an episode should be downloaded."""
         # check if episode was already downloaded
-        if self.history.is_in_history(entry.get("link")):
-            log.debug('episode "%s" is in history', entry.get("title"))
+        if self.history.is_in_history(episode.sharing_url):
+            log.debug('episode "%s" is in history', episode.title)
             return False
 
         show_filter = show_config.filter
         if show_filter:
 
-            # check episode-field against regex filter
-            regex: str = show_filter.regex
-            regex_field: str = show_filter.regex_field
-            if (regex and regex_field and not re.search(regex, entry.get(regex_field))):
-                log.debug('episode "%s" does not fit regex', entry.get("title"))
-                return False
-
             # check if episode before minimum date
             min_date = show_filter.min_date
             if min_date:
                 min_date = parser.parse(min_date)
-                entry_date = parser.parse(entry.get("published"))
-                if entry_date < min_date:
-                    log.debug('episode "%s" is before mindate', entry.get("title"))
+                # entry_date = parser.parse(episode.editorial_date)
+                if episode.editorial_date < min_date:
+                    log.debug('episode "%s" is before mindate', episode.title)
                     return False
 
-            if not self.is_episode_released(entry.get("link")):
-                log.debug('episode "%s" is not yet released', entry.get("title"))
-                return False
-
         return True
-
-
-    def is_episode_released(self, url: str) -> bool:
-        """Check if an episode has actually been released (rss feed has future episode)."""
-        result = requests.get(url)
-        return "verfügbar bis" in result.text
-
 
     def find_filename(self, download: DownloadConfiguration) -> str:
         """Generate a new filename by adding one to the current newest filename."""
@@ -88,7 +69,7 @@ class ZDFDownload():
         filename = self.find_filename(download)
         download_path = download.folder + "/" + filename + ".%(ext)s"
         try:
-            subprocess.run(["youtube-dl", url, "-o", download_path], check=True)
+            subprocess.run(["yt-dlp", url, "-o", download_path, "--force-generic"], check=True)
             self.history.add_to_history(url)
         except subprocess.CalledProcessError:
             log.error('error downloading %s', url)
@@ -96,13 +77,14 @@ class ZDFDownload():
 
     def check_show(self, show: ShowConfiguration) -> None:
         """Check all episodes of a show for new downloads."""
-        feed = feedparser.parse(show.feed_url)
-        entries = feed.entries
+
+        downloader = ZDFClient()
+        entries = downloader.get_episodes(show.canonical_id)
         entries.reverse()
         for entry in entries:
             if self.should_download(entry, show):
-                log.info('downloading episode %s: %s', entry.get("title"), entry.get("link"))
-                self.download_episode(entry.get("link"), show.download)
+                log.info('downloading episode %s: %s', entry.title, entry.sharing_url)
+                self.download_episode(entry.sharing_url, show.download)
 
 
     def check_all_shows(self, shows: List[ShowConfiguration]) -> None:

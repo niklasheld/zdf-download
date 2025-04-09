@@ -5,3 +5,4 @@ history.yaml
 media/
 *.mp4
 *.log
+.DS_Store

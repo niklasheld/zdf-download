@@ -1,9 +1,7 @@
 shows:
-  - feed-url: "https://www.zdf.de/rss/zdf/comedy/zdf-magazin-royale"
+  - canonical-id: "zdf-magazin-royale-102"
     filter:
-      regex: "zdf-magazin-royale-vom-\\d"
-      regexField: "link"
-      minDate: "2021-09-01 00:00+00:00"
+      minDate: "2024-03-18 00:00+00:00"
     download:
       folder: "/serien/ZDF Magazin Royale"
       filename: "ZDF Magazin Royale"
