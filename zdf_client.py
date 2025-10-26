@@ -61,8 +61,11 @@ class ZDFClient():
         )
 
         if r.status_code == 200:
-            data = r.json()
-            episodes = data.get("data", {}).get("smartCollectionByCanonical", {}).get("seasons", {}).get("nodes", [{}])[0].get("episodes", {}).get("nodes", [])
+            try:
+                data = r.json()
+                episodes = data.get("data", {}).get("smartCollectionByCanonical", {}).get("seasons", {}).get("nodes", [{}])[0].get("episodes", {}).get("nodes", [])
+            except Exception:
+                raise ValueError(f"Error parsing JSON response from ZDF API: {r.text}")
             for episode in episodes:
                 result.append(ZDFEpisode(
                     title=episode.get("title"),

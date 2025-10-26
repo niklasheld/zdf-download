@@ -79,7 +79,11 @@ class ZDFDownload():
         """Check all episodes of a show for new downloads."""
 
         downloader = ZDFClient()
-        entries = downloader.get_episodes(show.canonical_id)
+        try:
+            entries = downloader.get_episodes(show.canonical_id)
+        except Exception as e:
+            log.error('error getting episodes for show %s: %s', show.canonical_id, str(e))
+            return
         entries.reverse()
         for entry in entries:
             if self.should_download(entry, show):
